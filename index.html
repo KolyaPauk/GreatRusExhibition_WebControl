@@ -21,6 +21,18 @@
 	.unknown{background:transparent}
     .online{background:#3cb371}
     .offline{background:#d9534f}
+
+    .button-cell{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:4px;
+    }
+
+    .status-text{
+      font-size:12px;
+      min-height:16px;
+    }
   </style>
 </head>
 <body>
@@ -40,13 +52,7 @@
     </tr>
 
     <tr id="buttonRow">
-      <td>
-        <button id="callAllStartOnboarding" class="btn">Начать онбординг на всех ПК</button>
-      </td>
-    </tr>
-
-    <tr id="statusRow">
-      <td>Результат</td>
+      <td></td>
     </tr>
   </tbody>
 </table>
