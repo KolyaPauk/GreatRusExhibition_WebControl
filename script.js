@@ -74,6 +74,21 @@ function buildTable(){
   });
 }
 
+// Add call all button to header
+function addCallAllButton(){
+  const headerRow = document.getElementById('headerRow');
+  const th = document.createElement('th');
+  const btn = document.createElement('button');
+  btn.id = 'callAllStartOnboarding';
+  btn.className = 'btn';
+  btn.textContent = 'Начать онбординг на всех ПК';
+  btn.onclick = ()=>{
+    hosts.forEach((h,i)=> callHost(h,i));
+  };
+  th.appendChild(btn);
+  headerRow.appendChild(th);
+}
+
 // -------------------------------
 // CALL FUNCTION VIA PRESET
 // -------------------------------
@@ -109,6 +124,7 @@ async function callHost(host, idx){
 
 function setStatus(idx, state, msg=''){
   const el = document.getElementById('status'+idx);
+  if(!el) return;
   el.textContent = state + (msg?(' — '+msg):'');
   el.className = 'status-text ' + (state==='ok'?'ok': state==='err'?'err':'');
 }
@@ -118,6 +134,7 @@ function setStatus(idx, state, msg=''){
 // -------------------------------
 async function pingHost(host, idx){
   const dot = document.getElementById('dot'+idx);
+  if(!dot) return;
   try{
     const url = `http://${host.ip}:${host.port}/remote/info`;
 
@@ -137,13 +154,12 @@ async function pingHost(host, idx){
   }
 }
 
-setInterval(()=>{
-  hosts.forEach((h,i)=> pingHost(h,i));
-}, 2000);
-
-// -------------------------------
-document.getElementById('callAllStartOnboarding').onclick = ()=>{
-  hosts.forEach((h,i)=> callHost(h,i));
-};
-
-buildTable();
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', ()=>{
+  buildTable();
+  addCallAllButton();
+  
+  setInterval(()=>{
+    hosts.forEach((h,i)=> pingHost(h,i));
+  }, 2000);
+});
