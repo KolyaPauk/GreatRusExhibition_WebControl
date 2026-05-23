@@ -30,25 +30,32 @@ function saveHosts(){
   localStorage.setItem("ue5_hosts", JSON.stringify(hosts));
 }
 
-// Add call all button to header (must be called first!)
-function addCallAllButton(){
-  const headerRow = document.getElementById('headerRow');
-  const th = document.createElement('th');
-  const btn = document.createElement('button');
-  btn.id = 'callAllStartOnboarding';
-  btn.className = 'btn';
-  btn.textContent = 'Начать онбординг на всех ПК';
-  btn.onclick = ()=>{
-    hosts.forEach((h,i)=> callHost(h,i));
-  };
-  th.appendChild(btn);
-  headerRow.appendChild(th);
-}
-
 function buildTable(){
   const headerRow = document.getElementById('headerRow');
   const ipRow = document.getElementById('ipRow');
   const buttonRow = document.getElementById('buttonRow');
+
+  // Add "Все" column header
+  const allHeader = document.createElement('th');
+  allHeader.textContent = 'Все';
+  headerRow.appendChild(allHeader);
+
+  // Add "IP" label
+  const ipLabel = document.createElement('td');
+  ipLabel.textContent = 'IP';
+  ipRow.appendChild(ipLabel);
+
+  // Add "Call All" button in first column of button row
+  const callAllTd = document.createElement('td');
+  const callAllBtn = document.createElement('button');
+  callAllBtn.id = 'callAllStartOnboarding';
+  callAllBtn.className = 'btn';
+  callAllBtn.textContent = 'Начать онбординг на всех ПК';
+  callAllBtn.onclick = ()=>{
+    hosts.forEach((h,i)=> callHost(h,i));
+  };
+  callAllTd.appendChild(callAllBtn);
+  buttonRow.appendChild(callAllTd);
 
   hosts.forEach((h, i)=>{
     // Header with ping dot
@@ -156,7 +163,6 @@ async function pingHost(host, idx){
 
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', ()=>{
-  addCallAllButton();
   buildTable();
   
   setInterval(()=>{
