@@ -53,7 +53,7 @@ function buildTable(){
   callAllBtn.className = 'btn';
   callAllBtn.textContent = 'Начать онбординг на всех ПК';
   callAllBtn.onclick = ()=>{
-    hosts.forEach((h,i)=> callHost(h, i, 'StartOnboarding'));
+    hosts.forEach((h,i)=> callHost(h, i, 'CallStartOnboarding'));
   };
   callAllTd.appendChild(callAllBtn);
   buttonRow.appendChild(callAllTd);
@@ -65,7 +65,7 @@ function buildTable(){
   resetAllBtn.className = 'btn';
   resetAllBtn.textContent = 'ResetSession на всех ПК';
   resetAllBtn.onclick = ()=>{
-    hosts.forEach((h,i)=> callHost(h, i, 'ResetSession'));
+    hosts.forEach((h,i)=> callHost(h, i, 'CallResetSession'));
   };
   resetAllTd.appendChild(resetAllBtn);
   resetRow.appendChild(resetAllTd);
@@ -87,7 +87,7 @@ function buildTable(){
     tdIp.appendChild(input);
     ipRow.appendChild(tdIp);
 
-    // StartOnboarding Button with status
+    // CallStartOnboarding Button with status
     const tdBtn = document.createElement('td');
     const buttonCell = document.createElement('div');
     buttonCell.className = 'button-cell';
@@ -95,7 +95,7 @@ function buildTable(){
     const btn = document.createElement('button');
     btn.className='btn';
     btn.textContent='Начать онбординг';
-    btn.onclick = ()=> callHost(h, i, 'StartOnboarding');
+    btn.onclick = ()=> callHost(h, i, 'CallStartOnboarding');
 
     const statusDiv = document.createElement('div');
     statusDiv.id = 'status_start_'+i;
@@ -107,7 +107,7 @@ function buildTable(){
     tdBtn.appendChild(buttonCell);
     buttonRow.appendChild(tdBtn);
 
-    // ResetSession Button with status
+    // CallResetSession Button with status
     const tdReset = document.createElement('td');
     const resetCell = document.createElement('div');
     resetCell.className = 'button-cell';
@@ -115,7 +115,7 @@ function buildTable(){
     const resetBtn = document.createElement('button');
     resetBtn.className='btn';
     resetBtn.textContent='ResetSession';
-    resetBtn.onclick = ()=> callHost(h, i, 'ResetSession');
+    resetBtn.onclick = ()=> callHost(h, i, 'CallResetSession');
 
     const resetStatusDiv = document.createElement('div');
     resetStatusDiv.id = 'status_reset_'+i;
@@ -163,7 +163,7 @@ async function callHost(host, idx, functionName){
 }
 
 function setStatus(idx, functionName, state, msg=''){
-  const statusId = functionName === 'StartOnboarding' ? 'status_start_' + idx : 'status_reset_' + idx;
+  const statusId = functionName === 'CallStartOnboarding' ? 'status_start_' + idx : 'status_reset_' + idx;
   const el = document.getElementById(statusId);
   if(!el) return;
   el.textContent = state + (msg?(' — '+msg):'');
