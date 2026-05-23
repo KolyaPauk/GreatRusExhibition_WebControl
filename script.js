@@ -34,6 +34,7 @@ function buildTable(){
   const headerRow = document.getElementById('headerRow');
   const ipRow = document.getElementById('ipRow');
   const buttonRow = document.getElementById('buttonRow');
+  const resetRow = document.getElementById('resetRow');
 
   // Add "Все" column header
   const allHeader = document.createElement('th');
@@ -52,10 +53,22 @@ function buildTable(){
   callAllBtn.className = 'btn';
   callAllBtn.textContent = 'Начать онбординг на всех ПК';
   callAllBtn.onclick = ()=>{
-    hosts.forEach((h,i)=> callHost(h,i));
+    hosts.forEach((h,i)=> callHost(h, i, 'StartOnboarding'));
   };
   callAllTd.appendChild(callAllBtn);
   buttonRow.appendChild(callAllTd);
+
+  // Add "Reset All" button in first column of reset row
+  const resetAllTd = document.createElement('td');
+  const resetAllBtn = document.createElement('button');
+  resetAllBtn.id = 'resetAllSession';
+  resetAllBtn.className = 'btn';
+  resetAllBtn.textContent = 'ResetSession на всех ПК';
+  resetAllBtn.onclick = ()=>{
+    hosts.forEach((h,i)=> callHost(h, i, 'ResetSession'));
+  };
+  resetAllTd.appendChild(resetAllBtn);
+  resetRow.appendChild(resetAllTd);
 
   hosts.forEach((h, i)=>{
     // Header with ping dot
@@ -74,7 +87,7 @@ function buildTable(){
     tdIp.appendChild(input);
     ipRow.appendChild(tdIp);
 
-    // Button with status
+    // StartOnboarding Button with status
     const tdBtn = document.createElement('td');
     const buttonCell = document.createElement('div');
     buttonCell.className = 'button-cell';
@@ -82,10 +95,10 @@ function buildTable(){
     const btn = document.createElement('button');
     btn.className='btn';
     btn.textContent='Начать онбординг';
-    btn.onclick = ()=> callHost(h, i);
+    btn.onclick = ()=> callHost(h, i, 'StartOnboarding');
 
     const statusDiv = document.createElement('div');
-    statusDiv.id = 'status'+i;
+    statusDiv.id = 'status_start_'+i;
     statusDiv.className = 'status-text';
     statusDiv.textContent = '';
 
@@ -93,16 +106,36 @@ function buildTable(){
     buttonCell.appendChild(statusDiv);
     tdBtn.appendChild(buttonCell);
     buttonRow.appendChild(tdBtn);
+
+    // ResetSession Button with status
+    const tdReset = document.createElement('td');
+    const resetCell = document.createElement('div');
+    resetCell.className = 'button-cell';
+
+    const resetBtn = document.createElement('button');
+    resetBtn.className='btn';
+    resetBtn.textContent='ResetSession';
+    resetBtn.onclick = ()=> callHost(h, i, 'ResetSession');
+
+    const resetStatusDiv = document.createElement('div');
+    resetStatusDiv.id = 'status_reset_'+i;
+    resetStatusDiv.className = 'status-text';
+    resetStatusDiv.textContent = '';
+
+    resetCell.appendChild(resetBtn);
+    resetCell.appendChild(resetStatusDiv);
+    tdReset.appendChild(resetCell);
+    resetRow.appendChild(tdReset);
   });
 }
 
 // -------------------------------
 // CALL FUNCTION VIA PRESET
 // -------------------------------
-async function callHost(host, idx){
-  setStatus(idx,'pending');
+async function callHost(host, idx, functionName){
+  setStatus(idx, functionName, 'pending');
   try{
-	const url = `http://${host.ip}:${host.port}/remote/preset/${presetId}/function/StartOnboarding`;
+	const url = `http://${host.ip}:${host.port}/remote/preset/${presetId}/function/${functionName}`;
 
     const body = {
 		Parameters: {},
@@ -123,14 +156,15 @@ async function callHost(host, idx){
     if(!res.ok) throw new Error(res.status+' '+res.statusText);
 
     const data = await res.json();
-    setStatus(idx,'ok', '');
+    setStatus(idx, functionName, 'ok', '');
   } catch(e){
-    setStatus(idx,'err', e.message);
+    setStatus(idx, functionName, 'err', e.message);
   }
 }
 
-function setStatus(idx, state, msg=''){
-  const el = document.getElementById('status'+idx);
+function setStatus(idx, functionName, state, msg=''){
+  const statusId = functionName === 'StartOnboarding' ? 'status_start_' + idx : 'status_reset_' + idx;
+  const el = document.getElementById(statusId);
   if(!el) return;
   el.textContent = state + (msg?(' — '+msg):'');
   el.className = 'status-text ' + (state==='ok'?'ok': state==='err'?'err':'');
