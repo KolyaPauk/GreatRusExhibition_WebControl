@@ -34,7 +34,6 @@ function buildTable(){
   const headerRow = document.getElementById('headerRow');
   const ipRow = document.getElementById('ipRow');
   const buttonRow = document.getElementById('buttonRow');
-  const statusRow = document.getElementById('statusRow');
 
   hosts.forEach((h, i)=>{
     // Header with ping dot
@@ -53,20 +52,25 @@ function buildTable(){
     tdIp.appendChild(input);
     ipRow.appendChild(tdIp);
 
-    // Button
+    // Button with status
     const tdBtn = document.createElement('td');
+    const buttonCell = document.createElement('div');
+    buttonCell.className = 'button-cell';
+
     const btn = document.createElement('button');
     btn.className='btn';
     btn.textContent='Начать онбординг';
     btn.onclick = ()=> callHost(h, i);
-    tdBtn.appendChild(btn);
-    buttonRow.appendChild(tdBtn);
 
-    // Status
-    const tdStatus = document.createElement('td');
-    tdStatus.id = 'status'+i;
-    tdStatus.textContent='';
-    statusRow.appendChild(tdStatus);
+    const statusDiv = document.createElement('div');
+    statusDiv.id = 'status'+i;
+    statusDiv.className = 'status-text';
+    statusDiv.textContent = '';
+
+    buttonCell.appendChild(btn);
+    buttonCell.appendChild(statusDiv);
+    tdBtn.appendChild(buttonCell);
+    buttonRow.appendChild(tdBtn);
   });
 }
 
@@ -106,7 +110,7 @@ async function callHost(host, idx){
 function setStatus(idx, state, msg=''){
   const el = document.getElementById('status'+idx);
   el.textContent = state + (msg?(' — '+msg):'');
-  el.className = state==='ok'?'ok': state==='err'?'err':'';
+  el.className = 'status-text ' + (state==='ok'?'ok': state==='err'?'err':'');
 }
 
 // -------------------------------
