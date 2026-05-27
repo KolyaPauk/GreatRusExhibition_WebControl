@@ -1,63 +1,244 @@
 <!doctype html>
-<html>
+<html lang="ru">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>UE5 Remote Admin Panel</title>
   <style>
-    body{font-family:Arial;margin:20px}
-    table{border-collapse:collapse;width:100%}
-    th,td{border:1px solid #ccc;padding:8px;text-align:center}
-    input{width:120px;padding:4px;text-align:center}
-    .btn{padding:6px 10px;margin:4px;cursor:pointer}
-    .ok{background:#c8f7c5} .err{background:#f7c5c5}
-
-    .dot{
-      display:inline-block;
-      width:12px;
-      height:12px;
-      border-radius:50%;
-      margin-left:6px;
-    }
-	.unknown{background:transparent}
-    .online{background:#3cb371}
-    .offline{background:#d9534f}
-
-    .button-cell{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:4px;
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      
+      --btn-primary: #10b981;
+      --btn-primary-hover: #059669;
+      --btn-danger: #ef4444;
+      --btn-danger-hover: #dc2626;
+      --btn-global: #3b82f6;
+      --btn-global-hover: #2563eb;
+      
+      --status-online: #10b981;
+      --status-offline: #f43f5e;
     }
 
-    .status-text{
-      font-size:12px;
-      min-height:16px;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 16px;
+      padding-bottom: 40px;
+      -webkit-tap-highlight-color: transparent;
     }
+
+    .app-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    header h3 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    /* Блок глобального управления всеми ПК */
+    .global-controls {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+
+    .global-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    /* Сетка для карточек ПК */
+    .pc-container {
+      display: grid;
+      grid-template-columns: 1fr; /* По умолчанию в один столбец на смартфонах */
+      gap: 16px;
+    }
+
+    /* Адаптивность для планшетов и десктопов */
+    @media (min-width: 600px) {
+      .pc-container {
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+      .global-controls {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .global-buttons {
+        display: flex;
+        gap: 12px;
+        flex: 1;
+      }
+    }
+
+    /* Стилизация отдельной карточки ПК */
+    .pc-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    .pc-name {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* Индикатор пинга */
+    .dot {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .unknown { background: #64748b; }
+    .online { 
+      background: var(--status-online); 
+      box-shadow: 0 0 8px var(--status-online);
+    }
+    .offline { 
+      background: var(--status-offline); 
+      box-shadow: 0 0 8px var(--status-offline);
+    }
+
+    /* Поле редактирования IP */
+    .ip-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    .ip-group label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .ip-group input {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-family: monospace;
+      font-size: 14px;
+      text-align: right;
+      width: 100%;
+      outline: none;
+    }
+
+    /* Кнопки управления внутри карточки */
+    .card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .action-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* Общие стили кнопок с удобным тач-таргетом */
+    .btn {
+      font-size: 15px;
+      font-weight: 600;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+      width: 100%;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-global { background: var(--btn-global); }
+    .btn-global:hover { background: var(--btn-global-hover); }
+
+    .btn-start { background: var(--btn-primary); }
+    .btn-start:hover { background: var(--btn-primary-hover); }
+
+    .btn-reset { background: var(--btn-danger); }
+    .btn-reset:hover { background: var(--btn-danger-hover); }
+
+    /* Блок вывода статуса выполнения команд */
+    .status-text {
+      font-size: 12px;
+      min-height: 16px;
+      color: var(--text-muted);
+      padding-left: 2px;
+      margin-top: 2px;
+    }
+    .status-text.ok { color: #4ade80; font-weight: 500; }
+    .status-text.err { color: #f87171; font-weight: 500; }
+    .status-text.pending { color: #f59e0b; }
   </style>
 </head>
 <body>
 
-<h3>Remote Control Admin</h3>
+<div class="app-container">
+  <header>
+    <h3>Управление выставкой</h3>
+  </header>
 
-<table id="grid">
-  <thead>
-    <tr id="headerRow">
-    </tr>
-  </thead>
+  <div class="global-controls">
+    <div class="global-title">Общие команды</div>
+    <button id="callAllStartOnboarding" class="btn btn-start">🚀 Запустить онбординг везде</button>
+    <button id="resetAllSession" class="btn btn-reset">🔄 Сбросить сессию везде</button>
+  </div>
 
-  <tbody>
-    <tr id="ipRow">
-    </tr>
-
-    <tr id="buttonRow">
-    </tr>
-
-    <tr id="resetRow">
-    </tr>
-  </tbody>
-</table>
+  <div id="pcContainer" class="pc-container"></div>
+</div>
 
 <script src="script.js"></script>
-
 </body>
 </html>

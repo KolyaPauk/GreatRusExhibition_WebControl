@@ -1,15 +1,14 @@
 // -------------------------------
 // CONFIG
 // -------------------------------
-//const presetId = "90587C8C43DAC929C0E25FA2285716D1"; // <-- ВСТАВЬ СВОЙ ID
 const presetId = "RCP_AdminControl"; 
 
 let hosts = [
-  {name:'PC1', ip:'192.168.1.10', port:30010},
-  {name:'PC2', ip:'192.168.1.11', port:30010},
-  {name:'PC3', ip:'192.168.1.12', port:30010},
-  {name:'PC4', ip:'192.168.1.13', port:30010},
-  {name:'PC5', ip:'192.168.1.14', port:30010},
+  {name:'PC1', ip:'192.168.50.101', port:30010},
+  {name:'PC2', ip:'192.168.50.102', port:30010},
+  {name:'PC3', ip:'192.168.50.103', port:30010},
+  {name:'PC4', ip:'192.168.50.104', port:30010},
+  {name:'PC5', ip:'192.168.50.105', port:30010},
 ];
 
 // Load saved IPs
@@ -23,109 +22,78 @@ if(saved){
 
 const defaultTimeout = 8000;
 
-// -------------------------------
-// BUILD TABLE
-// -------------------------------
 function saveHosts(){
   localStorage.setItem("ue5_hosts", JSON.stringify(hosts));
 }
 
-function buildTable(){
-  const headerRow = document.getElementById('headerRow');
-  const ipRow = document.getElementById('ipRow');
-  const buttonRow = document.getElementById('buttonRow');
-  const resetRow = document.getElementById('resetRow');
-
-  // Add "Все" column header
-  const allHeader = document.createElement('th');
-  allHeader.textContent = 'Все';
-  headerRow.appendChild(allHeader);
-
-  // Add "IP" label
-  const ipLabel = document.createElement('td');
-  ipLabel.textContent = 'IP';
-  ipRow.appendChild(ipLabel);
-
-  // Add "Call All" button in first column of button row
-  const callAllTd = document.createElement('td');
-  const callAllBtn = document.createElement('button');
-  callAllBtn.id = 'callAllStartOnboarding';
-  callAllBtn.className = 'btn';
-  callAllBtn.textContent = 'Начать онбординг на всех ПК';
-  callAllBtn.onclick = ()=>{
-    hosts.forEach((h,i)=> callHost(h, i, 'CallStartOnboarding'));
-  };
-  callAllTd.appendChild(callAllBtn);
-  buttonRow.appendChild(callAllTd);
-
-  // Add "Reset All" button in first column of reset row
-  const resetAllTd = document.createElement('td');
-  const resetAllBtn = document.createElement('button');
-  resetAllBtn.id = 'resetAllSession';
-  resetAllBtn.className = 'btn';
-  resetAllBtn.textContent = 'ResetSession на всех ПК';
-  resetAllBtn.onclick = ()=>{
-    hosts.forEach((h,i)=> callHost(h, i, 'CallResetSession'));
-  };
-  resetAllTd.appendChild(resetAllBtn);
-  resetRow.appendChild(resetAllTd);
+// -------------------------------
+// BUILD CARDS (MOBILE FIRST)
+// -------------------------------
+function buildDashboard(){
+  const container = document.getElementById('pcContainer');
+  if(!container) return;
+  container.innerHTML = ''; // Очистка перед сборкой
 
   hosts.forEach((h, i)=>{
-    // Header with ping dot
-    const th = document.createElement('th');
-    th.innerHTML = `${h.name} <span id="dot${i}" class="dot unknown"></span>`;
-    headerRow.appendChild(th);
+    // Создаем общую карточку для одного хоста
+    const card = document.createElement('div');
+    card.className = 'pc-card';
 
-    // IP input
-    const tdIp = document.createElement('td');
+    // Шапка карточки: Имя и статус-точка
+    const header = document.createElement('div');
+    header.className = 'card-header';
+    header.innerHTML = `<span class="pc-name">${h.name}</span><span id="dot${i}" class="dot unknown"></span>`;
+    card.appendChild(header);
+
+    // Поле ввода IP-адреса
+    const ipGroup = document.createElement('div');
+    ipGroup.className = 'ip-group';
+    ipGroup.innerHTML = `<label>IP:</label>`;
+    
     const input = document.createElement('input');
+    input.type = 'text';
     input.value = h.ip;
     input.onchange = ()=>{
       hosts[i].ip = input.value;
       saveHosts();
     };
-    tdIp.appendChild(input);
-    ipRow.appendChild(tdIp);
+    ipGroup.appendChild(input);
+    card.appendChild(ipGroup);
 
-    // CallStartOnboarding Button with status
-    const tdBtn = document.createElement('td');
-    const buttonCell = document.createElement('div');
-    buttonCell.className = 'button-cell';
+    // Зона действий (Кнопки и статусы ответа)
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
 
-    const btn = document.createElement('button');
-    btn.className='btn';
-    btn.textContent='Начать онбординг';
-    btn.onclick = ()=> callHost(h, i, 'CallStartOnboarding');
+    // Блок кнопки Онбординга
+    const startRow = document.createElement('div');
+    startRow.className = 'action-row';
+    const btnStart = document.createElement('button');
+    btnStart.className = 'btn btn-start';
+    btnStart.textContent = 'Начать онбординг';
+    btnStart.onclick = () => callHost(h, i, 'CallStartOnboarding');
+    const statusStart = document.createElement('div');
+    statusStart.id = 'status_start_' + i;
+    statusStart.className = 'status-text';
+    startRow.appendChild(btnStart);
+    startRow.appendChild(statusStart);
+    actions.appendChild(startRow);
 
-    const statusDiv = document.createElement('div');
-    statusDiv.id = 'status_start_'+i;
-    statusDiv.className = 'status-text';
-    statusDiv.textContent = '';
+    // Блок кнопки ResetSession
+    const resetRow = document.createElement('div');
+    resetRow.className = 'action-row';
+    const btnReset = document.createElement('button');
+    btnReset.className = 'btn btn-reset';
+    btnReset.textContent = 'ResetSession';
+    btnReset.onclick = () => callHost(h, i, 'CallResetSession');
+    const statusReset = document.createElement('div');
+    statusReset.id = 'status_reset_' + i;
+    statusReset.className = 'status-text';
+    resetRow.appendChild(btnReset);
+    resetRow.appendChild(statusReset);
+    actions.appendChild(resetRow);
 
-    buttonCell.appendChild(btn);
-    buttonCell.appendChild(statusDiv);
-    tdBtn.appendChild(buttonCell);
-    buttonRow.appendChild(tdBtn);
-
-    // CallResetSession Button with status
-    const tdReset = document.createElement('td');
-    const resetCell = document.createElement('div');
-    resetCell.className = 'button-cell';
-
-    const resetBtn = document.createElement('button');
-    resetBtn.className='btn';
-    resetBtn.textContent='ResetSession';
-    resetBtn.onclick = ()=> callHost(h, i, 'CallResetSession');
-
-    const resetStatusDiv = document.createElement('div');
-    resetStatusDiv.id = 'status_reset_'+i;
-    resetStatusDiv.className = 'status-text';
-    resetStatusDiv.textContent = '';
-
-    resetCell.appendChild(resetBtn);
-    resetCell.appendChild(resetStatusDiv);
-    tdReset.appendChild(resetCell);
-    resetRow.appendChild(tdReset);
+    card.appendChild(actions);
+    container.appendChild(card);
   });
 }
 
@@ -135,12 +103,12 @@ function buildTable(){
 async function callHost(host, idx, functionName){
   setStatus(idx, functionName, 'pending');
   try{
-	const url = `http://${host.ip}:${host.port}/remote/preset/${presetId}/function/${functionName}`;
+    const url = `http://${host.ip}:${host.port}/remote/preset/${presetId}/function/${functionName}`;
 
     const body = {
-		Parameters: {},
-		GenerateTransaction: true
-	};
+      Parameters: {},
+      GenerateTransaction: true
+    };
 
     const controller = new AbortController();
     const id = setTimeout(()=>controller.abort(), defaultTimeout);
@@ -155,7 +123,7 @@ async function callHost(host, idx, functionName){
     clearTimeout(id);
     if(!res.ok) throw new Error(res.status+' '+res.statusText);
 
-    const data = await res.json();
+    await res.json();
     setStatus(idx, functionName, 'ok', '');
   } catch(e){
     setStatus(idx, functionName, 'err', e.message);
@@ -166,8 +134,17 @@ function setStatus(idx, functionName, state, msg=''){
   const statusId = functionName === 'CallStartOnboarding' ? 'status_start_' + idx : 'status_reset_' + idx;
   const el = document.getElementById(statusId);
   if(!el) return;
-  el.textContent = state + (msg?(' — '+msg):'');
-  el.className = 'status-text ' + (state==='ok'?'ok': state==='err'?'err':'');
+  
+  if (state === 'pending') {
+    el.textContent = '⌛ Отправка запроса...';
+    el.className = 'status-text pending';
+  } else if (state === 'ok') {
+    el.textContent = '✅ Выполнено успешно';
+    el.className = 'status-text ok';
+  } else if (state === 'err') {
+    el.textContent = '❌ Ошибка: ' + msg;
+    el.className = 'status-text err';
+  }
 }
 
 // -------------------------------
@@ -197,8 +174,18 @@ async function pingHost(host, idx){
 
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', ()=>{
-  buildTable();
+  buildDashboard();
   
+  // Инициализация глобальных кнопок
+  document.getElementById('callAllStartOnboarding').onclick = ()=>{
+    hosts.forEach((h,i)=> callHost(h, i, 'CallStartOnboarding'));
+  };
+  
+  document.getElementById('resetAllSession').onclick = ()=>{
+    hosts.forEach((h,i)=> callHost(h, i, 'CallResetSession'));
+  };
+  
+  // Запуск фонового пинга
   setInterval(()=>{
     hosts.forEach((h,i)=> pingHost(h,i));
   }, 2000);
