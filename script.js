@@ -21,6 +21,7 @@ if(saved){
 }
 
 const defaultTimeout = 8000;
+const osCommandTimeout = 5000;
 
 function saveHosts(){
   localStorage.setItem("ue5_hosts", JSON.stringify(hosts));
@@ -64,6 +65,15 @@ function buildDashboard(){
     const actions = document.createElement('div');
     actions.className = 'card-actions';
 
+    // ===== UE5 SECTION =====
+    const ue5Section = document.createElement('div');
+    ue5Section.className = 'action-section';
+    
+    const ue5Title = document.createElement('div');
+    ue5Title.className = 'action-section-title';
+    ue5Title.textContent = 'UE5 Команды';
+    ue5Section.appendChild(ue5Title);
+
     // Блок кнопки Онбординга
     const startRow = document.createElement('div');
     startRow.className = 'action-row';
@@ -76,7 +86,7 @@ function buildDashboard(){
     statusStart.className = 'status-text';
     startRow.appendChild(btnStart);
     startRow.appendChild(statusStart);
-    actions.appendChild(startRow);
+    ue5Section.appendChild(startRow);
 
     // Блок кнопки ResetSession
     const resetRow = document.createElement('div');
@@ -90,15 +100,69 @@ function buildDashboard(){
     statusReset.className = 'status-text';
     resetRow.appendChild(btnReset);
     resetRow.appendChild(statusReset);
-    actions.appendChild(resetRow);
+    ue5Section.appendChild(resetRow);
 
+    actions.appendChild(ue5Section);
+
+    // ===== OS SECTION =====
+    const osSection = document.createElement('div');
+    osSection.className = 'action-section';
+    
+    const osTitle = document.createElement('div');
+    osTitle.className = 'action-section-title';
+    osTitle.textContent = 'ОС Команды';
+    osSection.appendChild(osTitle);
+
+    // Shutdown button
+    const shutdownRow = document.createElement('div');
+    shutdownRow.className = 'action-row';
+    const btnShutdown = document.createElement('button');
+    btnShutdown.className = 'btn btn-shutdown';
+    btnShutdown.textContent = '⏹️ Выключить';
+    btnShutdown.onclick = () => callOSCommand(h, i, 'shutdown');
+    const statusShutdown = document.createElement('div');
+    statusShutdown.id = 'status_shutdown_' + i;
+    statusShutdown.className = 'status-text';
+    shutdownRow.appendChild(btnShutdown);
+    shutdownRow.appendChild(statusShutdown);
+    osSection.appendChild(shutdownRow);
+
+    // Restart button
+    const restartRow = document.createElement('div');
+    restartRow.className = 'action-row';
+    const btnRestart = document.createElement('button');
+    btnRestart.className = 'btn btn-restart';
+    btnRestart.textContent = '🔄 Перезагрузить';
+    btnRestart.onclick = () => callOSCommand(h, i, 'restart');
+    const statusRestart = document.createElement('div');
+    statusRestart.id = 'status_restart_' + i;
+    statusRestart.className = 'status-text';
+    restartRow.appendChild(btnRestart);
+    restartRow.appendChild(statusRestart);
+    osSection.appendChild(restartRow);
+
+    // Run App button
+    const runappRow = document.createElement('div');
+    runappRow.className = 'action-row';
+    const btnRunapp = document.createElement('button');
+    btnRunapp.className = 'btn btn-runapp';
+    btnRunapp.textContent = '▶️ Запустить app';
+    btnRunapp.onclick = () => callOSCommand(h, i, 'runapp');
+    const statusRunapp = document.createElement('div');
+    statusRunapp.id = 'status_runapp_' + i;
+    statusRunapp.className = 'status-text';
+    runappRow.appendChild(btnRunapp);
+    runappRow.appendChild(statusRunapp);
+    osSection.appendChild(runappRow);
+
+    actions.appendChild(osSection);
     card.appendChild(actions);
     container.appendChild(card);
   });
 }
 
 // -------------------------------
-// CALL FUNCTION VIA PRESET
+// CALL FUNCTION VIA PRESET (UE5)
 // -------------------------------
 async function callHost(host, idx, functionName){
   setStatus(idx, functionName, 'pending');
@@ -130,8 +194,50 @@ async function callHost(host, idx, functionName){
   }
 }
 
+// -------------------------------
+// CALL OS COMMANDS
+// -------------------------------
+async function callOSCommand(host, idx, command){
+  setOSStatus(idx, command, 'pending');
+  try{
+    const url = `http://${host.ip}:8081/${command}`;
+
+    const controller = new AbortController();
+    const id = setTimeout(()=>controller.abort(), osCommandTimeout);
+
+    const res = await fetch(url, {
+      method:'GET',
+      signal: controller.signal
+    });
+
+    clearTimeout(id);
+    if(!res.ok) throw new Error(res.status+' '+res.statusText);
+
+    setOSStatus(idx, command, 'ok', '');
+  } catch(e){
+    setOSStatus(idx, command, 'err', e.message);
+  }
+}
+
 function setStatus(idx, functionName, state, msg=''){
   const statusId = functionName === 'CallStartOnboarding' ? 'status_start_' + idx : 'status_reset_' + idx;
+  const el = document.getElementById(statusId);
+  if(!el) return;
+  
+  if (state === 'pending') {
+    el.textContent = '⌛ Отправка запроса...';
+    el.className = 'status-text pending';
+  } else if (state === 'ok') {
+    el.textContent = '✅ Выполнено успешно';
+    el.className = 'status-text ok';
+  } else if (state === 'err') {
+    el.textContent = '❌ Ошибка: ' + msg;
+    el.className = 'status-text err';
+  }
+}
+
+function setOSStatus(idx, command, state, msg=''){
+  const statusId = 'status_' + command + '_' + idx;
   const el = document.getElementById(statusId);
   if(!el) return;
   
@@ -176,13 +282,26 @@ async function pingHost(host, idx){
 document.addEventListener('DOMContentLoaded', ()=>{
   buildDashboard();
   
-  // Инициализация глобальных кнопок
+  // ===== UE5 Global Commands =====
   document.getElementById('callAllStartOnboarding').onclick = ()=>{
     hosts.forEach((h,i)=> callHost(h, i, 'CallStartOnboarding'));
   };
   
   document.getElementById('resetAllSession').onclick = ()=>{
     hosts.forEach((h,i)=> callHost(h, i, 'CallResetSession'));
+  };
+
+  // ===== OS Global Commands =====
+  document.getElementById('shutdownAll').onclick = ()=>{
+    hosts.forEach((h,i)=> callOSCommand(h, i, 'shutdown'));
+  };
+
+  document.getElementById('restartAll').onclick = ()=>{
+    hosts.forEach((h,i)=> callOSCommand(h, i, 'restart'));
+  };
+
+  document.getElementById('runappAll').onclick = ()=>{
+    hosts.forEach((h,i)=> callOSCommand(h, i, 'runapp'));
   };
   
   // Запуск фонового пинга
