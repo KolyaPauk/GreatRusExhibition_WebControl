@@ -18,6 +18,8 @@
       --btn-danger-hover: #dc2626;
       --btn-global: #3b82f6;
       --btn-global-hover: #2563eb;
+      --btn-warning: #f59e0b;
+      --btn-warning-hover: #d97706;
       
       --status-online: #10b981;
       --status-offline: #f43f5e;
@@ -63,14 +65,24 @@
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
     }
 
-    .global-title {
-      font-size: 14px;
+    .global-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .global-section-title {
+      font-size: 12px;
       font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 4px;
-      text-align: center;
+    }
+
+    .global-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
     /* Сетка для карточек ПК */
@@ -88,12 +100,15 @@
       .global-controls {
         flex-direction: row;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .global-section {
+        flex: 1;
+        min-width: 250px;
       }
       .global-buttons {
-        display: flex;
-        gap: 12px;
-        flex: 1;
+        flex-direction: row;
       }
     }
 
@@ -175,6 +190,21 @@
       gap: 12px;
     }
 
+    .action-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .action-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding-left: 2px;
+    }
+
     .action-row {
       display: flex;
       flex-direction: column;
@@ -210,6 +240,15 @@
     .btn-reset { background: var(--btn-danger); }
     .btn-reset:hover { background: var(--btn-danger-hover); }
 
+    .btn-shutdown { background: #ef4444; }
+    .btn-shutdown:hover { background: #dc2626; }
+
+    .btn-restart { background: var(--btn-warning); }
+    .btn-restart:hover { background: var(--btn-warning-hover); }
+
+    .btn-runapp { background: #06b6d4; }
+    .btn-runapp:hover { background: #0891b2; }
+
     /* Блок вывода статуса выполнения команд */
     .status-text {
       font-size: 12px;
@@ -231,9 +270,21 @@
   </header>
 
   <div class="global-controls">
-    <div class="global-title">Общие команды</div>
-    <button id="callAllStartOnboarding" class="btn btn-start">🚀 Запустить онбординг везде</button>
-    <button id="resetAllSession" class="btn btn-reset">🔄 Сбросить сессию везде</button>
+    <div class="global-section">
+      <div class="global-section-title">UE5 Команды</div>
+      <div class="global-buttons">
+        <button id="callAllStartOnboarding" class="btn btn-start">🚀 Запустить онбординг везде</button>
+        <button id="resetAllSession" class="btn btn-reset">🔄 Сбросить сессию везде</button>
+      </div>
+    </div>
+    <div class="global-section">
+      <div class="global-section-title">ОС Команды</div>
+      <div class="global-buttons">
+        <button id="shutdownAll" class="btn btn-shutdown">⏹️ Выключить все</button>
+        <button id="restartAll" class="btn btn-restart">🔄 Перезагрузить все</button>
+        <button id="runappAll" class="btn btn-runapp">▶️ Запустить app везде</button>
+      </div>
+    </div>
   </div>
 
   <div id="pcContainer" class="pc-container"></div>
