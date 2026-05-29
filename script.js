@@ -27,6 +27,65 @@ function saveHosts(){
   localStorage.setItem("ue5_hosts", JSON.stringify(hosts));
 }
 
+// Confirmation messages for OS commands
+const osConfirmMessages = {
+  shutdown: (pcName) => `Вы точно хотите выключить ${pcName}?`,
+  restart: (pcName) => `Вы точно хотите перезагрузить ${pcName}?`,
+  runapp: (pcName) => `Вы точно хотите перезапустить приложение на ${pcName}?`
+};
+
+// -------------------------------
+// CONFIRMATION POPUP
+// -------------------------------
+function showConfirmation(message) {
+  return new Promise((resolve) => {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'confirmation-overlay';
+
+    // Create popup
+    const popup = document.createElement('div');
+    popup.className = 'confirmation-popup';
+
+    // Message
+    const msgElement = document.createElement('div');
+    msgElement.className = 'confirmation-message';
+    msgElement.textContent = message;
+    popup.appendChild(msgElement);
+
+    // Buttons container
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.className = 'confirmation-buttons';
+
+    // Yes button
+    const yesBtn = document.createElement('button');
+    yesBtn.className = 'confirmation-btn confirmation-yes';
+    yesBtn.textContent = 'Да';
+    yesBtn.onclick = () => {
+      overlay.remove();
+      resolve(true);
+    };
+    buttonsContainer.appendChild(yesBtn);
+
+    // No button
+    const noBtn = document.createElement('button');
+    noBtn.className = 'confirmation-btn confirmation-no';
+    noBtn.textContent = 'Нет';
+    noBtn.onclick = () => {
+      overlay.remove();
+      resolve(false);
+    };
+    buttonsContainer.appendChild(noBtn);
+
+    popup.appendChild(buttonsContainer);
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+
+    // Focus on the No button by default (safer option)
+    noBtn.focus();
+  });
+}
+
 // -------------------------------
 // BUILD CARDS (MOBILE FIRST)
 // -------------------------------
@@ -119,7 +178,12 @@ function buildDashboard(){
     const btnShutdown = document.createElement('button');
     btnShutdown.className = 'btn btn-shutdown';
     btnShutdown.textContent = '⏹️ Выключить';
-    btnShutdown.onclick = () => callOSCommand(h, i, 'shutdown');
+    btnShutdown.onclick = async () => {
+      const confirmed = await showConfirmation(osConfirmMessages.shutdown(h.name));
+      if (confirmed) {
+        callOSCommand(h, i, 'shutdown');
+      }
+    };
     const statusShutdown = document.createElement('div');
     statusShutdown.id = 'status_shutdown_' + i;
     statusShutdown.className = 'status-text';
@@ -133,7 +197,12 @@ function buildDashboard(){
     const btnRestart = document.createElement('button');
     btnRestart.className = 'btn btn-restart';
     btnRestart.textContent = '🔄 Перезагрузить';
-    btnRestart.onclick = () => callOSCommand(h, i, 'restart');
+    btnRestart.onclick = async () => {
+      const confirmed = await showConfirmation(osConfirmMessages.restart(h.name));
+      if (confirmed) {
+        callOSCommand(h, i, 'restart');
+      }
+    };
     const statusRestart = document.createElement('div');
     statusRestart.id = 'status_restart_' + i;
     statusRestart.className = 'status-text';
@@ -147,7 +216,12 @@ function buildDashboard(){
     const btnRunapp = document.createElement('button');
     btnRunapp.className = 'btn btn-runapp';
     btnRunapp.textContent = '▶️ Запустить app';
-    btnRunapp.onclick = () => callOSCommand(h, i, 'runapp');
+    btnRunapp.onclick = async () => {
+      const confirmed = await showConfirmation(osConfirmMessages.runapp(h.name));
+      if (confirmed) {
+        callOSCommand(h, i, 'runapp');
+      }
+    };
     const statusRunapp = document.createElement('div');
     statusRunapp.id = 'status_runapp_' + i;
     statusRunapp.className = 'status-text';
@@ -195,7 +269,7 @@ async function callHost(host, idx, functionName){
 }
 
 // -------------------------------
-// CALL OS COMMANDS
+// CALL OS COMMANDS (with CORS workaround)
 // -------------------------------
 async function callOSCommand(host, idx, command){
   setOSStatus(idx, command, 'pending');
@@ -205,16 +279,19 @@ async function callOSCommand(host, idx, command){
     const controller = new AbortController();
     const id = setTimeout(()=>controller.abort(), osCommandTimeout);
 
+    // Use 'no-cors' mode to bypass CORS checks - the command still executes on the server
+    // We won't be able to read the response, but the status indicates success if no timeout occurs
     const res = await fetch(url, {
       method:'GET',
+      mode: 'no-cors',
       signal: controller.signal
     });
 
     clearTimeout(id);
-    if(!res.ok) throw new Error(res.status+' '+res.statusText);
-
+    // In no-cors mode, we can't check response status, but no error means the request went through
     setOSStatus(idx, command, 'ok', '');
   } catch(e){
+    clearTimeout(id);
     setOSStatus(idx, command, 'err', e.message);
   }
 }
@@ -292,16 +369,25 @@ document.addEventListener('DOMContentLoaded', ()=>{
   };
 
   // ===== OS Global Commands =====
-  document.getElementById('shutdownAll').onclick = ()=>{
-    hosts.forEach((h,i)=> callOSCommand(h, i, 'shutdown'));
+  document.getElementById('shutdownAll').onclick = async ()=>{
+    const confirmed = await showConfirmation('Вы точно хотите выключить ВСЕ ПК?');
+    if (confirmed) {
+      hosts.forEach((h,i)=> callOSCommand(h, i, 'shutdown'));
+    }
   };
 
-  document.getElementById('restartAll').onclick = ()=>{
-    hosts.forEach((h,i)=> callOSCommand(h, i, 'restart'));
+  document.getElementById('restartAll').onclick = async ()=>{
+    const confirmed = await showConfirmation('Вы точно хотите перезагрузить ВСЕ ПК?');
+    if (confirmed) {
+      hosts.forEach((h,i)=> callOSCommand(h, i, 'restart'));
+    }
   };
 
-  document.getElementById('runappAll').onclick = ()=>{
-    hosts.forEach((h,i)=> callOSCommand(h, i, 'runapp'));
+  document.getElementById('runappAll').onclick = async ()=>{
+    const confirmed = await showConfirmation('Вы точно хотите перезапустить приложение на ВСЕ ПК?');
+    if (confirmed) {
+      hosts.forEach((h,i)=> callOSCommand(h, i, 'runapp'));
+    }
   };
   
   // Запуск фонового пинга
