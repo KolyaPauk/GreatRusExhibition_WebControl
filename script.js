@@ -152,7 +152,7 @@ function buildDashboard(){
     resetRow.className = 'action-row';
     const btnReset = document.createElement('button');
     btnReset.className = 'btn btn-reset';
-    btnReset.textContent = 'ResetSession';
+    btnReset.textContent = 'Сбросить сессию';
     btnReset.onclick = () => callHost(h, i, 'CallResetSession');
     const statusReset = document.createElement('div');
     statusReset.id = 'status_reset_' + i;
@@ -177,7 +177,7 @@ function buildDashboard(){
     shutdownRow.className = 'action-row';
     const btnShutdown = document.createElement('button');
     btnShutdown.className = 'btn btn-shutdown';
-    btnShutdown.textContent = '⏹️ Выключить';
+    btnShutdown.textContent = '⏹️ Выключить ПК';
     btnShutdown.onclick = async () => {
       const confirmed = await showConfirmation(osConfirmMessages.shutdown(h.name));
       if (confirmed) {
@@ -196,7 +196,7 @@ function buildDashboard(){
     restartRow.className = 'action-row';
     const btnRestart = document.createElement('button');
     btnRestart.className = 'btn btn-restart';
-    btnRestart.textContent = '🔄 Перезагрузить';
+    btnRestart.textContent = '🔄 Перезагрузить ПК';
     btnRestart.onclick = async () => {
       const confirmed = await showConfirmation(osConfirmMessages.restart(h.name));
       if (confirmed) {
