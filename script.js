@@ -269,7 +269,7 @@ async function callHost(host, idx, functionName){
 }
 
 // -------------------------------
-// CALL OS COMMANDS (with CORS workaround)
+// CALL OS COMMANDS
 // -------------------------------
 async function callOSCommand(host, idx, command){
   setOSStatus(idx, command, 'pending');
@@ -279,16 +279,14 @@ async function callOSCommand(host, idx, command){
     const controller = new AbortController();
     const id = setTimeout(()=>controller.abort(), osCommandTimeout);
 
-    // Use 'no-cors' mode to bypass CORS checks - the command still executes on the server
-    // We won't be able to read the response, but the status indicates success if no timeout occurs
     const res = await fetch(url, {
       method:'GET',
-      mode: 'no-cors',
       signal: controller.signal
     });
 
     clearTimeout(id);
-    // In no-cors mode, we can't check response status, but no error means the request went through
+    if(!res.ok) throw new Error(res.status+' '+res.statusText);
+
     setOSStatus(idx, command, 'ok', '');
   } catch(e){
     clearTimeout(id);
