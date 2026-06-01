@@ -11,12 +11,26 @@ let hosts = [
   {name:'PC5', ip:'192.168.50.105', port:30010, scenarioCount: 2},
 ];
 
-// Load saved IPs
+// Load saved IPs and merge with defaults
 const saved = localStorage.getItem("ue5_hosts");
 if(saved){
   try{
     const parsed = JSON.parse(saved);
-    if(Array.isArray(parsed)) hosts = parsed;
+    if(Array.isArray(parsed)){
+      // Merge saved data with default structure to ensure all properties exist
+      hosts = hosts.map((defaultHost, index) => {
+        const savedHost = parsed[index];
+        if(savedHost){
+          return {
+            ...defaultHost,
+            ...savedHost,
+            // Ensure scenarioCount exists and has a default value of 2
+            scenarioCount: savedHost.scenarioCount !== undefined ? savedHost.scenarioCount : 2
+          };
+        }
+        return defaultHost;
+      });
+    }
   }catch{}
 }
 
