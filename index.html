@@ -185,6 +185,54 @@
       outline: none;
     }
 
+    /* Сценарий тогл */
+    .scenario-toggle-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    .scenario-toggle-group label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .toggle-switch {
+      display: flex;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 4px;
+      height: 28px;
+    }
+
+    .toggle-option {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+      padding: 4px 10px;
+    }
+
+    .toggle-option.active {
+      background: var(--btn-primary);
+      color: #fff;
+    }
+
+    .toggle-option:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
     /* Кнопки управления внутри карточки */
     .card-actions {
       display: flex;
