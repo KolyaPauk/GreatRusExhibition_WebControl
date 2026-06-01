@@ -4,11 +4,11 @@
 const presetId = "RCP_AdminControl"; 
 
 let hosts = [
-  {name:'PC1', ip:'192.168.50.101', port:30010},
-  {name:'PC2', ip:'192.168.50.102', port:30010},
-  {name:'PC3', ip:'192.168.50.103', port:30010},
-  {name:'PC4', ip:'192.168.50.104', port:30010},
-  {name:'PC5', ip:'192.168.50.105', port:30010},
+  {name:'PC1', ip:'192.168.50.101', port:30010, scenarioCount: 2},
+  {name:'PC2', ip:'192.168.50.102', port:30010, scenarioCount: 2},
+  {name:'PC3', ip:'192.168.50.103', port:30010, scenarioCount: 2},
+  {name:'PC4', ip:'192.168.50.104', port:30010, scenarioCount: 2},
+  {name:'PC5', ip:'192.168.50.105', port:30010, scenarioCount: 2},
 ];
 
 // Load saved IPs
@@ -119,6 +119,41 @@ function buildDashboard(){
     };
     ipGroup.appendChild(input);
     card.appendChild(ipGroup);
+
+    // Сценарий тогл
+    const scenarioGroup = document.createElement('div');
+    scenarioGroup.className = 'scenario-toggle-group';
+    scenarioGroup.innerHTML = `<label>Количество сценариев:</label>`;
+    
+    const toggleSwitch = document.createElement('div');
+    toggleSwitch.className = 'toggle-switch';
+    
+    const btnOne = document.createElement('button');
+    btnOne.className = 'toggle-option';
+    if (h.scenarioCount === 1) btnOne.classList.add('active');
+    btnOne.textContent = 'Один';
+    btnOne.onclick = () => {
+      hosts[i].scenarioCount = 1;
+      saveHosts();
+      btnOne.classList.add('active');
+      btnTwo.classList.remove('active');
+    };
+    
+    const btnTwo = document.createElement('button');
+    btnTwo.className = 'toggle-option';
+    if (h.scenarioCount === 2) btnTwo.classList.add('active');
+    btnTwo.textContent = 'Два';
+    btnTwo.onclick = () => {
+      hosts[i].scenarioCount = 2;
+      saveHosts();
+      btnTwo.classList.add('active');
+      btnOne.classList.remove('active');
+    };
+    
+    toggleSwitch.appendChild(btnOne);
+    toggleSwitch.appendChild(btnTwo);
+    scenarioGroup.appendChild(toggleSwitch);
+    card.appendChild(scenarioGroup);
 
     // Зона действий (Кнопки и статусы ответа)
     const actions = document.createElement('div');
@@ -247,6 +282,11 @@ async function callHost(host, idx, functionName){
       Parameters: {},
       GenerateTransaction: true
     };
+
+    // Add NewScenarioCount parameter for CallStartOnboarding
+    if (functionName === 'CallStartOnboarding') {
+      body.Parameters.NewScenarioCount = host.scenarioCount;
+    }
 
     const controller = new AbortController();
     const id = setTimeout(()=>controller.abort(), defaultTimeout);
