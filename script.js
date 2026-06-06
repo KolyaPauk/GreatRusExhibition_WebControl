@@ -210,6 +210,20 @@ function buildDashboard(){
     resetRow.appendChild(statusReset);
     ue5Section.appendChild(resetRow);
 
+    // Блок кнопки Recalibrate
+    const recalibrateRow = document.createElement('div');
+    recalibrateRow.className = 'action-row';
+    const btnRecalibrate = document.createElement('button');
+    btnRecalibrate.className = 'btn btn-recalibrate';
+    btnRecalibrate.textContent = 'Сброс калибровки';
+    btnRecalibrate.onclick = () => callHost(h, i, 'CallRecalibrate');
+    const statusRecalibrate = document.createElement('div');
+    statusRecalibrate.id = 'status_recalibrate_' + i;
+    statusRecalibrate.className = 'status-text';
+    recalibrateRow.appendChild(btnRecalibrate);
+    recalibrateRow.appendChild(statusRecalibrate);
+    ue5Section.appendChild(recalibrateRow);
+
     actions.appendChild(ue5Section);
 
     // ===== OS SECTION =====
@@ -348,11 +362,21 @@ async function callOSCommand(host, idx, command){
   }
 }
 
-function setStatus(idx, functionName, state, msg=''){
-  const statusId = functionName === 'CallStartOnboarding' ? 'status_start_' + idx : 'status_reset_' + idx;
+function setStatus(idx, functionName, state, msg = '') {
+  // Маппинг functionName → id‑префикс
+  const prefixMap = {
+    CallStartOnboarding: 'status_start_',
+    CallResetSession: 'status_reset_',
+    CallRecalibrate: 'status_recalibrate_'
+  };
+
+  const prefix = prefixMap[functionName];
+  if (!prefix) return; // неизвестная функция — просто выходим
+
+  const statusId = prefix + idx;
   const el = document.getElementById(statusId);
-  if(!el) return;
-  
+  if (!el) return;
+
   if (state === 'pending') {
     el.textContent = '⌛ Отправка запроса...';
     el.className = 'status-text pending';
@@ -418,6 +442,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
   
   document.getElementById('resetAllSession').onclick = ()=>{
     hosts.forEach((h,i)=> callHost(h, i, 'CallResetSession'));
+  };
+
+  document.getElementById('recalibrateAll').onclick = ()=>{
+    hosts.forEach((h,i)=> callHost(h, i, 'CallRecalibrate'));
   };
 
   // ===== OS Global Commands =====
